@@ -46,6 +46,7 @@ interface Props {
 export function ChatView({ thread, updateThread }: Props) {
   const translate = useServerFn(translateText);
   const [draft, setDraft] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const style = thread.style ?? "polite";
