@@ -1,10 +1,12 @@
 export type Direction = "en-ko" | "ko-en";
+export type TranslationStyle = "formal" | "casual" | "polite";
 
 export interface ChatMessage {
   id: string;
   original: string;
   translation: string;
   direction: Direction;
+  style: TranslationStyle;
   createdAt: number;
   pending?: boolean;
   error?: boolean;
@@ -15,6 +17,7 @@ export interface Thread {
   title: string;
   updatedAt: number;
   direction: Direction;
+  style: TranslationStyle;
   messages: ChatMessage[];
 }
 
@@ -31,7 +34,15 @@ export function loadThreads(): Thread[] {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as Thread[];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    // Migrate old threads that lack `style`
+    for (const t of parsed) {
+      if (!t.style) t.style = "polite";
+      for (const m of t.messages) {
+        if (!m.style) m.style = "polite";
+      }
+    }
+    return parsed;
   } catch {
     return [];
   }
@@ -42,12 +53,13 @@ export function saveThreads(threads: Thread[]) {
   window.localStorage.setItem(KEY, JSON.stringify(threads));
 }
 
-export function createThread(direction: Direction = "en-ko"): Thread {
+export function createThread(direction: Direction = "en-ko", style: TranslationStyle = "polite"): Thread {
   return {
     id: uid(),
     title: "New conversation",
     updatedAt: Date.now(),
     direction,
+    style,
     messages: [],
   };
 }

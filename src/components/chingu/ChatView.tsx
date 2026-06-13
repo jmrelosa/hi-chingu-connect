@@ -6,6 +6,7 @@ import {
   type ChatMessage,
   type Direction,
   type Thread,
+  type TranslationStyle,
 } from "@/lib/threads-store";
 import { translateText } from "@/lib/translate.functions";
 
@@ -23,6 +24,8 @@ export function ChatView({ thread, updateThread }: Props) {
   const [draft, setDraft] = useState("");
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
+  const style = thread.style ?? "polite";
+
   // Auto-scroll on new messages
   useEffect(() => {
     const el = scrollRef.current;
@@ -31,6 +34,10 @@ export function ChatView({ thread, updateThread }: Props) {
 
   const setDirection = (d: Direction) => {
     updateThread(thread.id, (t) => ({ ...t, direction: d, updatedAt: Date.now() }));
+  };
+
+  const setStyle = (s: TranslationStyle) => {
+    updateThread(thread.id, (t) => ({ ...t, style: s, updatedAt: Date.now() }));
   };
 
   const handleSubmit = async () => {
@@ -43,6 +50,7 @@ export function ChatView({ thread, updateThread }: Props) {
       original: text,
       translation: "",
       direction,
+      style,
       createdAt: Date.now(),
       pending: true,
     };
@@ -55,7 +63,7 @@ export function ChatView({ thread, updateThread }: Props) {
     setDraft("");
 
     try {
-      const { translation } = await translate({ data: { text, direction } });
+      const { translation } = await translate({ data: { text, direction, style } });
       updateThread(thread.id, (t) => ({
         ...t,
         updatedAt: Date.now(),
@@ -109,6 +117,8 @@ export function ChatView({ thread, updateThread }: Props) {
         onChange={setDraft}
         onSubmit={handleSubmit}
         direction={thread.direction}
+        style={style}
+        onStyleChange={setStyle}
       />
     </div>
   );
