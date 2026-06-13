@@ -1,7 +1,8 @@
-import { Copy, Mic, Volume2 } from "lucide-react";
+import { Copy, Mic, Volume2, VolumeX } from "lucide-react";
 import { useState } from "react";
 
 import type { ChatMessage } from "@/lib/threads-store";
+import { useTts } from "@/lib/use-tts";
 import { cn } from "@/lib/utils";
 
 import { styleBadge } from "./StyleSelector";
@@ -14,6 +15,8 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
   const [copied, setCopied] = useState(false);
 
   const targetLang = message.direction === "en-ko" ? "ko-KR" : "en-US";
+  const { speak, speakingId, supported: ttsSupported } = useTts();
+  const isSpeaking = speakingId === message.id;
 
   const copyTranslation = async () => {
     if (!message.translation) return;
@@ -27,13 +30,8 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
   };
 
   const speakTranslation = () => {
-    if (!message.translation || typeof window === "undefined") return;
-    const synth = window.speechSynthesis;
-    if (!synth) return;
-    synth.cancel();
-    const utter = new SpeechSynthesisUtterance(message.translation);
-    utter.lang = targetLang;
-    synth.speak(utter);
+    if (!message.translation) return;
+    speak(message.id, message.translation, targetLang);
   };
 
   return (
@@ -95,12 +93,28 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
               <button
                 type="button"
                 onClick={speakTranslation}
-                title="Speak translation"
-                aria-label="Speak translation"
-                className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 hover:bg-muted hover:text-foreground"
+                disabled={!ttsSupported}
+                title={
+                  !ttsSupported
+                    ? "Text-to-speech not supported in this browser"
+                    : isSpeaking
+                      ? "Stop playback"
+                      : "Speak translation"
+                }
+                aria-label={isSpeaking ? "Stop playback" : "Speak translation"}
+                aria-pressed={isSpeaking}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 hover:bg-muted hover:text-foreground",
+                  isSpeaking && "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary",
+                  !ttsSupported && "cursor-not-allowed opacity-50",
+                )}
               >
-                <Volume2 className="h-3 w-3" />
-                Speak
+                {isSpeaking ? (
+                  <VolumeX className="h-3 w-3 animate-pulse" />
+                ) : (
+                  <Volume2 className="h-3 w-3" />
+                )}
+                {isSpeaking ? "Stop" : "Speak"}
               </button>
             </>
           )}
