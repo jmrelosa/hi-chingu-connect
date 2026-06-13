@@ -201,6 +201,10 @@
   padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
 }
 
+@utility pb-keyboard-safe {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom), var(--keyboard-inset, 0px));
+}
+
 @layer base {
   html,
   body {
@@ -214,6 +218,7 @@
   body {
     min-height: 100svh;
     min-height: 100dvh;
+    height: var(--app-height, 100dvh);
   }
 
   button,
