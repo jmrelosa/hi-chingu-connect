@@ -14,8 +14,14 @@ export function DirectionToggle({ direction, onChange, className }: Props) {
 
   const [from, to] =
     direction === "en-ko"
-      ? [{ flag: "🇺🇸", label: "English" }, { flag: "🇰🇷", label: "Korean" }]
-      : [{ flag: "🇰🇷", label: "Korean" }, { flag: "🇺🇸", label: "English" }];
+      ? [
+          { flag: "🇺🇸", label: "English", short: "EN" },
+          { flag: "🇰🇷", label: "Korean", short: "KR" },
+        ]
+      : [
+          { flag: "🇰🇷", label: "Korean", short: "KR" },
+          { flag: "🇺🇸", label: "English", short: "EN" },
+        ];
 
   return (
     <button
@@ -23,18 +29,20 @@ export function DirectionToggle({ direction, onChange, className }: Props) {
       onClick={flip}
       aria-label="Flip translation direction"
       className={cn(
-        "group inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-medium text-white/90 backdrop-blur transition hover:bg-white/10",
+        "group inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-medium text-white/90 backdrop-blur transition hover:bg-white/10",
         className,
       )}
     >
       <span className="flex items-center gap-1.5">
         <span className="text-base leading-none">{from.flag}</span>
-        <span>{from.label}</span>
+        <span className="hidden sm:inline">{from.label}</span>
+        <span className="sm:hidden">{from.short}</span>
       </span>
       <ArrowLeftRight className="h-3.5 w-3.5 text-white/60 transition group-hover:text-white" />
       <span className="flex items-center gap-1.5">
         <span className="text-base leading-none">{to.flag}</span>
-        <span>{to.label}</span>
+        <span className="hidden sm:inline">{to.label}</span>
+        <span className="sm:hidden">{to.short}</span>
       </span>
     </button>
   );

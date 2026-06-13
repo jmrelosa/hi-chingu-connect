@@ -1,5 +1,5 @@
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeftRight, Download, Trash2, Users } from "lucide-react";
+import { ArrowLeftRight, Download, MoreVertical, Trash2, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -15,6 +15,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   newMessageId,
   type ChatMessage,
@@ -39,6 +46,7 @@ interface Props {
 export function ChatView({ thread, updateThread }: Props) {
   const translate = useServerFn(translateText);
   const [draft, setDraft] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const style = thread.style ?? "polite";
@@ -197,104 +205,130 @@ export function ChatView({ thread, updateThread }: Props) {
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
-      <header className="flex items-center justify-between gap-4 border-b border-white/10 bg-brand-navy px-4 py-3 text-brand-navy-foreground sm:px-6">
-        <div className="flex min-w-0 flex-col leading-tight">
-          <h1 className="truncate text-sm font-semibold sm:text-base">
-            {thread.title || "New conversation"}
-          </h1>
-          <span className="text-[11px] text-white/60">
-            {interpreterMode ? "Interpreter Mode — two-way live" : directionLabel}
-          </span>
+      <ConfirmClear open={confirmOpen} onOpenChange={setConfirmOpen} onConfirm={clearChat} title={thread.title} />
+      <header className="flex flex-col gap-2 border-b border-white/10 bg-brand-navy px-3 py-2 text-brand-navy-foreground sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-3">
+        {/* Row 1 (mobile) / left side (desktop): title + interpreter toggle + kebab */}
+        <div className="flex min-h-[40px] items-center justify-between gap-2 sm:min-h-0 sm:flex-1">
+          <div className="flex min-w-0 flex-col leading-tight">
+            <h1 className="truncate text-sm font-semibold sm:text-base">
+              {thread.title || "New conversation"}
+            </h1>
+            <span className="hidden text-[11px] text-white/60 sm:inline">
+              {interpreterMode ? "Interpreter Mode — two-way live" : directionLabel}
+            </span>
+          </div>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={toggleInterpreter}
+              aria-pressed={interpreterMode}
+              className={cn(
+                "h-9 gap-1.5 rounded-full border px-2.5 text-xs sm:px-3 sm:text-sm",
+                interpreterMode
+                  ? "border-brand-green/40 bg-brand-green/20 text-white hover:bg-brand-green/30"
+                  : "border-white/10 bg-white/5 text-white/90 hover:bg-white/10 hover:text-white",
+              )}
+              title="Toggle Interpreter Mode"
+            >
+              <Users className="h-3.5 w-3.5" />
+              <span className="hidden xs:inline sm:inline">Interpreter</span>
+              <span className="inline xs:hidden sm:hidden">🔄</span>
+            </Button>
+            {/* Desktop: explicit Export/Clear buttons */}
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={exportChat}
+              disabled={thread.messages.length === 0}
+              title="Export conversation as .txt"
+              className="hidden h-9 gap-1.5 rounded-full border border-white/10 bg-white/5 text-white/90 hover:bg-white/10 hover:text-white disabled:opacity-40 sm:inline-flex"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Export
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setConfirmOpen(true)}
+              disabled={thread.messages.length === 0}
+              title="Clear conversation"
+              className="hidden h-9 gap-1.5 rounded-full border border-white/10 bg-white/5 text-white/90 hover:bg-red-500/20 hover:text-white disabled:opacity-40 sm:inline-flex"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Clear
+            </Button>
+            {/* Mobile: kebab menu for Export/Clear */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  aria-label="More actions"
+                  className="h-9 w-9 shrink-0 rounded-full border border-white/10 bg-white/5 text-white hover:bg-white/10 sm:hidden"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem
+                  onClick={exportChat}
+                  disabled={thread.messages.length === 0}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Export as .txt
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => setConfirmOpen(true)}
+                  disabled={thread.messages.length === 0}
+                  className="text-red-600 focus:text-red-700"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Clear chat
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        {/* Row 2 (mobile) / right side (desktop): language toggle + (interpreter: swap) */}
+        <div className="flex items-center gap-2 sm:gap-2">
           {interpreterMode ? (
             <Button
               type="button"
               size="sm"
               variant="ghost"
               onClick={swapSpeakers}
-              className="gap-1.5 rounded-full border border-white/10 bg-white/5 text-white/90 hover:bg-white/10 hover:text-white"
+              className="h-9 w-full gap-1.5 rounded-full border border-white/10 bg-white/5 text-xs text-white/90 hover:bg-white/10 hover:text-white sm:w-auto sm:text-sm"
               title="Swap which panel speaks which language"
             >
               <ArrowLeftRight className="h-3.5 w-3.5" />
-              Swap
+              Swap speakers
             </Button>
           ) : (
-            <DirectionToggle direction={thread.direction} onChange={setDirection} />
+            <DirectionToggle
+              direction={thread.direction}
+              onChange={setDirection}
+              className="h-9 w-full sm:w-auto"
+            />
           )}
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            onClick={toggleInterpreter}
-            aria-pressed={interpreterMode}
-            className={cn(
-              "gap-1.5 rounded-full border text-sm",
-              interpreterMode
-                ? "border-brand-green/40 bg-brand-green/20 text-white hover:bg-brand-green/30"
-                : "border-white/10 bg-white/5 text-white/90 hover:bg-white/10 hover:text-white",
-            )}
-            title="Toggle Interpreter Mode"
-          >
-            <Users className="h-3.5 w-3.5" />
-            Interpreter Mode 🔄
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            onClick={exportChat}
-            disabled={thread.messages.length === 0}
-            title="Export conversation as .txt"
-            className="gap-1.5 rounded-full border border-white/10 bg-white/5 text-white/90 hover:bg-white/10 hover:text-white disabled:opacity-40"
-          >
-            <Download className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Export</span>
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                disabled={thread.messages.length === 0}
-                title="Clear conversation"
-                className="gap-1.5 rounded-full border border-white/10 bg-white/5 text-white/90 hover:bg-red-500/20 hover:text-white disabled:opacity-40"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Clear</span>
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Clear this conversation?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will permanently delete all messages in "{thread.title || "this conversation"}". This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={clearChat}
-                  className="bg-red-600 text-white hover:bg-red-700"
-                >
-                  Clear chat
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
         </div>
       </header>
 
       {interpreterMode ? (
         <>
-          <div className="flex items-center justify-between gap-3 border-b border-border bg-background/80 px-4 py-2 sm:px-6">
-            <p className="text-xs text-muted-foreground">
+          <div className="flex items-center justify-between gap-3 border-b border-border bg-background/80 px-3 py-2 sm:px-6">
+            <p className="hidden text-xs text-muted-foreground sm:block">
               Each panel uses its own mic. Style applies to both.
             </p>
+            <p className="text-xs text-muted-foreground sm:hidden">Style:</p>
             <StyleSelector value={style} onChange={setStyle} />
           </div>
-          <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
             <InterpreterPanel
               direction={directionA}
               label={labelA}
@@ -318,7 +352,7 @@ export function ChatView({ thread, updateThread }: Props) {
         <>
           <div
             ref={scrollRef}
-            className="flex-1 overflow-y-auto bg-chat-bg px-4 py-6 sm:px-6"
+            className="min-h-0 flex-1 overflow-y-auto bg-chat-bg px-3 py-4 sm:px-6 sm:py-6"
           >
             <div className="mx-auto flex max-w-3xl flex-col gap-4">
               {thread.messages.length === 0 ? (
@@ -341,6 +375,40 @@ export function ChatView({ thread, updateThread }: Props) {
         </>
       )}
     </div>
+  );
+}
+
+function ConfirmClear({
+  open,
+  onOpenChange,
+  onConfirm,
+  title,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onConfirm: () => void;
+  title: string;
+}) {
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Clear this conversation?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This will permanently delete all messages in &quot;{title || "this conversation"}&quot;. This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onConfirm}
+            className="bg-red-600 text-white hover:bg-red-700"
+          >
+            Clear chat
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 
