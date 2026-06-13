@@ -104,7 +104,7 @@ export function InterpreterPanel({
   return (
     <section
       className={cn(
-        "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border h-[50vh] lg:h-auto",
+        "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border",
         tintClasses,
         className,
       )}
