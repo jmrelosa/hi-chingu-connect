@@ -32,9 +32,28 @@ export function Composer({
   disabled,
 }: Props) {
   const ref = useRef<HTMLTextAreaElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     ref.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+
+    const updateHeight = () => {
+      document.documentElement.style.setProperty(
+        "--composer-height",
+        `${Math.ceil(el.getBoundingClientRect().height)}px`,
+      );
+    };
+
+    updateHeight();
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(el);
+
+    return () => observer.disconnect();
   }, []);
 
   const placeholder =
@@ -99,7 +118,11 @@ export function Composer({
   };
 
   return (
-    <div className="pb-safe z-40 shrink-0 border-t border-border bg-background px-3 pt-2 sm:px-6 sm:pt-3">
+    <div
+      ref={containerRef}
+      className="pb-safe fixed inset-x-0 z-40 shrink-0 border-t border-border bg-background px-3 pt-2 sm:static sm:px-6 sm:pt-3"
+      style={{ bottom: "var(--keyboard-inset, 0px)" }}
+    >
       <div className="mx-auto flex max-w-3xl flex-col gap-2">
         <div className="flex items-center justify-between px-1">
           <p className="text-xs text-muted-foreground">
