@@ -96,19 +96,19 @@ export function InterpreterPanel({
   return (
     <section
       className={cn(
-        "flex min-h-0 flex-1 flex-col overflow-hidden border",
+        "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border h-[50vh] lg:h-auto",
         tintClasses,
         className,
       )}
     >
       <header
         className={cn(
-          "flex items-center justify-between gap-2 border-b bg-white/60 px-4 py-2 backdrop-blur",
+          "flex items-center justify-between gap-2 border-b bg-white/60 px-3 py-1.5 backdrop-blur sm:px-4 sm:py-2",
           tint === "blue" ? "border-sky-200" : "border-emerald-200",
         )}
       >
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="text-lg leading-none">{flag}</span>
+        <div className="flex min-w-0 items-center gap-1.5">
+          <span className="text-base leading-none sm:text-lg">{flag}</span>
           {editing ? (
             <input
               autoFocus
@@ -122,26 +122,26 @@ export function InterpreterPanel({
                   setEditing(false);
                 }
               }}
-              className="min-w-0 rounded-md border border-border bg-white px-2 py-0.5 text-sm font-semibold text-foreground outline-none focus:border-primary"
+              className="min-w-0 rounded-md border border-border bg-white px-2 py-0.5 text-xs font-semibold text-foreground outline-none focus:border-primary sm:text-sm"
             />
           ) : (
             <button
               type="button"
               onClick={() => setEditing(true)}
-              className="group inline-flex min-w-0 items-center gap-1.5 text-sm font-semibold text-foreground"
+              className="group inline-flex min-w-0 items-center gap-1.5 text-xs font-semibold text-foreground sm:text-sm"
               title="Click to rename"
             >
               <span className="truncate">{label}</span>
               <Pencil className="h-3 w-3 text-muted-foreground opacity-0 transition group-hover:opacity-100" />
             </button>
           )}
-          <span className={cn("text-[11px] font-medium uppercase tracking-wide", tintAccent)}>
+          <span className={cn("hidden text-[10px] font-medium uppercase tracking-wide sm:inline sm:text-[11px]", tintAccent)}>
             {langName}
           </span>
         </div>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-4">
+      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-2 py-3 sm:px-3 sm:py-4">
         {messages.length === 0 ? (
           <div className="mx-auto max-w-sm rounded-xl border border-white/60 bg-white/70 px-4 py-6 text-center text-sm text-muted-foreground shadow-sm">
             {direction === "en-ko"
@@ -159,7 +159,7 @@ export function InterpreterPanel({
 
       <div
         className={cn(
-          "border-t bg-white/70 px-3 py-2 backdrop-blur",
+          "sticky bottom-0 border-t bg-white/80 px-2 pt-2 pb-safe backdrop-blur sm:px-3",
           tint === "blue" ? "border-sky-200" : "border-emerald-200",
         )}
       >
@@ -179,7 +179,7 @@ export function InterpreterPanel({
             }}
             placeholder={placeholder}
             rows={1}
-            className="min-h-[40px] max-h-32 flex-1 resize-none border-0 bg-transparent px-2 py-1.5 text-[14px] leading-relaxed shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="min-h-[44px] max-h-32 flex-1 resize-none border-0 bg-transparent px-2 py-1.5 text-base leading-relaxed shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 sm:text-[14px]"
           />
           <Button
             type="button"
@@ -197,7 +197,7 @@ export function InterpreterPanel({
             aria-label={listening ? "Stop voice input" : "Start voice input"}
             aria-pressed={listening}
             className={cn(
-              "h-9 w-9 shrink-0 rounded-full",
+              "h-11 w-11 shrink-0 rounded-full sm:h-9 sm:w-9",
               listening
                 ? "mic-recording bg-brand-green text-white hover:bg-brand-green/90"
                 : "text-muted-foreground",
@@ -212,7 +212,7 @@ export function InterpreterPanel({
             onClick={() => send(value, false)}
             disabled={!value.trim()}
             aria-label="Send"
-            className="h-9 w-9 shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+            className="h-11 w-11 shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 sm:h-9 sm:w-9"
           >
             <SendHorizonal className="h-4 w-4" />
           </Button>
