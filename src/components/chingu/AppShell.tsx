@@ -31,6 +31,7 @@ export function AppShell({ activeId, children }: Props) {
 
     const root = document.documentElement;
     let rafId = 0;
+    const timeoutIds = new Set<number>();
 
     const updateViewportMetrics = () => {
       cancelAnimationFrame(rafId);
@@ -51,18 +52,34 @@ export function AppShell({ activeId, children }: Props) {
       });
     };
 
+    const scheduleViewportChecks = () => {
+      updateViewportMetrics();
+      [80, 240, 500].forEach((delay) => {
+        const id = window.setTimeout(() => {
+          timeoutIds.delete(id);
+          updateViewportMetrics();
+        }, delay);
+        timeoutIds.add(id);
+      });
+    };
+
     updateViewportMetrics();
     window.visualViewport?.addEventListener("resize", updateViewportMetrics);
     window.visualViewport?.addEventListener("scroll", updateViewportMetrics);
     window.addEventListener("resize", updateViewportMetrics);
     window.addEventListener("orientationchange", updateViewportMetrics);
+    window.addEventListener("focusin", scheduleViewportChecks);
+    window.addEventListener("focusout", scheduleViewportChecks);
 
     return () => {
       cancelAnimationFrame(rafId);
+      timeoutIds.forEach((id) => window.clearTimeout(id));
       window.visualViewport?.removeEventListener("resize", updateViewportMetrics);
       window.visualViewport?.removeEventListener("scroll", updateViewportMetrics);
       window.removeEventListener("resize", updateViewportMetrics);
       window.removeEventListener("orientationchange", updateViewportMetrics);
+      window.removeEventListener("focusin", scheduleViewportChecks);
+      window.removeEventListener("focusout", scheduleViewportChecks);
     };
   }, []);
 
@@ -153,14 +170,14 @@ export function AppShell({ activeId, children }: Props) {
 
   if (!ready) {
     return (
-      <div className="flex w-full items-center justify-center bg-background text-muted-foreground" style={{ height: "var(--app-height, 100dvh)" }}>
+      <div className="flex w-full items-center justify-center overflow-x-hidden bg-background text-muted-foreground" style={{ height: "var(--app-height, 100dvh)" }}>
         Loading…
       </div>
     );
   }
 
   return (
-    <div className="flex w-full overflow-hidden bg-background text-foreground" style={{ height: "var(--app-height, 100dvh)" }}>
+    <div className="flex w-full overflow-x-hidden bg-background text-foreground" style={{ height: "var(--app-height, 100dvh)" }}>
       <div className="hidden md:flex">
         <ThreadSidebar
           threads={threads}
@@ -169,7 +186,7 @@ export function AppShell({ activeId, children }: Props) {
           onDelete={handleDelete}
         />
       </div>
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         {children({ threads, activeThread, updateThread })}
       </div>
     </div>

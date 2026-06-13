@@ -352,7 +352,8 @@ export function ChatView({ thread, updateThread }: Props) {
         <>
           <div
             ref={scrollRef}
-            className="min-h-0 flex-1 overflow-y-auto bg-chat-bg px-3 py-4 sm:px-6 sm:py-6"
+            className="min-h-0 flex-1 overflow-y-auto bg-chat-bg px-3 pt-4 sm:px-6 sm:py-6"
+            style={{ paddingBottom: "calc(var(--composer-height, 112px) + 1rem)" }}
           >
             <div className="mx-auto flex max-w-3xl flex-col gap-4">
               {thread.messages.length === 0 ? (
