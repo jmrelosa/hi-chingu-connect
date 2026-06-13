@@ -152,6 +152,49 @@ export function ChatView({ thread, updateThread }: Props) {
   const messagesA = thread.messages.filter((m) => m.direction === directionA);
   const messagesB = thread.messages.filter((m) => m.direction === directionB);
 
+  const clearChat = () => {
+    updateThread(thread.id, (t) => ({ ...t, messages: [], updatedAt: Date.now() }));
+    toast.success("Conversation cleared");
+  };
+
+  const exportChat = () => {
+    if (thread.messages.length === 0) {
+      toast("Nothing to export yet");
+      return;
+    }
+    const lines: string[] = [];
+    lines.push(`Hi Chingu! — Conversation Export`);
+    lines.push(`Title: ${thread.title || "Untitled"}`);
+    lines.push(`Exported: ${new Date().toLocaleString()}`);
+    lines.push("");
+    lines.push("=".repeat(60));
+    lines.push("");
+    for (const m of thread.messages) {
+      const ts = new Date(m.createdAt).toLocaleString();
+      const dir = m.direction === "en-ko" ? "EN → KO" : "KO → EN";
+      const styleTag = (m.style ?? "polite").toUpperCase();
+      const voiceTag = m.voice ? " 🎤" : "";
+      lines.push(`[${ts}] ${dir} (${styleTag})${voiceTag}`);
+      lines.push(`Original:    ${m.original}`);
+      lines.push(`Translation: ${m.translation || (m.error ? "[failed]" : "[pending]")}`);
+      lines.push("");
+    }
+    const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const safeTitle = (thread.title || "conversation")
+      .replace(/[^\w\-]+/g, "_")
+      .slice(0, 40) || "conversation";
+    const stamp = new Date().toISOString().slice(0, 10);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `hi-chingu_${safeTitle}_${stamp}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast.success("Conversation exported");
+  };
+
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
       <header className="flex items-center justify-between gap-4 border-b border-white/10 bg-brand-navy px-4 py-3 text-brand-navy-foreground sm:px-6">
@@ -196,6 +239,50 @@ export function ChatView({ thread, updateThread }: Props) {
             <Users className="h-3.5 w-3.5" />
             Interpreter Mode 🔄
           </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={exportChat}
+            disabled={thread.messages.length === 0}
+            title="Export conversation as .txt"
+            className="gap-1.5 rounded-full border border-white/10 bg-white/5 text-white/90 hover:bg-white/10 hover:text-white disabled:opacity-40"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Export</span>
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                disabled={thread.messages.length === 0}
+                title="Clear conversation"
+                className="gap-1.5 rounded-full border border-white/10 bg-white/5 text-white/90 hover:bg-red-500/20 hover:text-white disabled:opacity-40"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Clear</span>
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Clear this conversation?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete all messages in "{thread.title || "this conversation"}". This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={clearChat}
+                  className="bg-red-600 text-white hover:bg-red-700"
+                >
+                  Clear chat
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </header>
 
