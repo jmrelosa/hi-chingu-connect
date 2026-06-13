@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 interface Props {
   threads: Thread[];
   activeId: string;
-  onNew: () => void;
+  onNew: () => string;
   onDelete: (id: string) => void;
 }
 
@@ -37,8 +37,8 @@ export function ThreadSidebar({ threads, activeId, onNew, onDelete }: Props) {
         <Button
           type="button"
           onClick={() => {
-            const id = onNewAndReturnId(onNew, threads);
-            if (id) navigate({ to: "/$threadId", params: { threadId: id } });
+            const id = onNew();
+            navigate({ to: "/$threadId", params: { threadId: id } });
           }}
           className="w-full justify-start gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
         >
@@ -90,15 +90,4 @@ export function ThreadSidebar({ threads, activeId, onNew, onDelete }: Props) {
       </div>
     </aside>
   );
-}
-
-function onNewAndReturnId(
-  onNew: () => void,
-  _threads: Thread[],
-): string | undefined {
-  // onNew returns void; we resolve the new id via a side channel.
-  // Implementation note: onNew should be a function that creates+returns the id.
-  // We keep this helper as a stub for callers using the alternate signature.
-  onNew();
-  return undefined;
 }
