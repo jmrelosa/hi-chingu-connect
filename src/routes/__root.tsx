@@ -84,7 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Hi Chingu! is a live two-way English and Korean chat translator. Type and see instant translations side by side.",
       },
-      { property: "og:title", content: "Hi Chingu! — English ↔ Korean translator" },
+      { property: "og:title", content: "Hi Chingu! — Real-time English ↔ Korean translator" },
       {
         property: "og:description",
         content: "Live two-way English and Korean chat translation.",
@@ -92,6 +92,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Hi Chingu! — Real-time English ↔ Korean translator" },
+      { name: "description", content: "Real-time English ↔ Korean web translator for live, two-way communication." },
+      { property: "og:description", content: "Real-time English ↔ Korean web translator for live, two-way communication." },
+      { name: "twitter:description", content: "Real-time English ↔ Korean web translator for live, two-way communication." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/23f36707-e95b-4895-9367-33f0647fca66/id-preview-f41e0b44--95bd4731-bf1f-40f7-9c5c-04500b081682.lovable.app-1781363736717.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/23f36707-e95b-4895-9367-33f0647fca66/id-preview-f41e0b44--95bd4731-bf1f-40f7-9c5c-04500b081682.lovable.app-1781363736717.png" },
     ],
     links: [
       {
