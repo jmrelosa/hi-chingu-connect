@@ -186,7 +186,7 @@ export function AppShell({ activeId, children }: Props) {
           onDelete={handleDelete}
         />
       </div>
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         {children({ threads, activeThread, updateThread })}
       </div>
     </div>
