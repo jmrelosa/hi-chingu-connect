@@ -1,5 +1,6 @@
 import { Mic, SendHorizonal } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -81,7 +82,21 @@ export function Composer({
   const toggleMic = () => {
     if (!supported) return;
     if (listening) stop();
-    else start();
+    else {
+      try {
+        start();
+      } catch (e) {
+        console.warn(e);
+        toast.error("Please allow microphone access in your browser settings");
+      }
+    }
+  };
+
+  const handleFocus = () => {
+    // Auto-scroll page so input stays above the mobile keyboard
+    requestAnimationFrame(() => {
+      ref.current?.scrollIntoView({ block: "end", behavior: "smooth" });
+    });
   };
 
   return (
@@ -103,6 +118,7 @@ export function Composer({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={handleKeyDown}
+            onFocus={handleFocus}
             placeholder={placeholder}
             rows={1}
             className="min-h-[44px] max-h-40 flex-1 resize-none border-0 bg-transparent px-2 py-2 text-base leading-relaxed shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 sm:text-[15px]"
@@ -112,6 +128,10 @@ export function Composer({
             variant={listening ? "default" : "ghost"}
             size="icon"
             onClick={toggleMic}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              toggleMic();
+            }}
             disabled={!supported || disabled}
             title={
               !supported
@@ -122,8 +142,9 @@ export function Composer({
             }
             aria-label={listening ? "Stop voice input" : "Start voice input"}
             aria-pressed={listening}
+            style={{ minWidth: 48, minHeight: 48, touchAction: "manipulation" }}
             className={cn(
-              "h-11 w-11 shrink-0 rounded-full sm:h-10 sm:w-10",
+              "relative z-50 h-12 w-12 shrink-0 rounded-full sm:h-10 sm:w-10",
               listening
                 ? "mic-recording bg-brand-green text-white hover:bg-brand-green/90"
                 : "text-muted-foreground",
@@ -138,7 +159,8 @@ export function Composer({
             disabled={disabled || !value.trim()}
             size="icon"
             aria-label="Send message"
-            className="h-11 w-11 shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 sm:h-10 sm:w-10"
+            style={{ minWidth: 48, minHeight: 48, touchAction: "manipulation" }}
+            className="relative z-50 h-12 w-12 shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 sm:h-10 sm:w-10"
           >
             <SendHorizonal className="h-4 w-4" />
           </Button>

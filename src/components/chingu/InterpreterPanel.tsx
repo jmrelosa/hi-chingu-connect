@@ -1,5 +1,6 @@
 import { Mic, Pencil, SendHorizonal } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -76,7 +77,14 @@ export function InterpreterPanel({
   const toggleMic = () => {
     if (!supported) return;
     if (listening) stop();
-    else start();
+    else {
+      try {
+        start();
+      } catch (e) {
+        console.warn(e);
+        toast.error("Please allow microphone access in your browser settings");
+      }
+    }
   };
 
   const tintClasses =
@@ -171,6 +179,11 @@ export function InterpreterPanel({
             ref={taRef}
             value={value}
             onChange={(e) => setValue(e.target.value)}
+            onFocus={() =>
+              requestAnimationFrame(() =>
+                taRef.current?.scrollIntoView({ block: "end", behavior: "smooth" }),
+              )
+            }
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
@@ -186,6 +199,10 @@ export function InterpreterPanel({
             size="icon"
             variant={listening ? "default" : "ghost"}
             onClick={toggleMic}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              toggleMic();
+            }}
             disabled={!supported}
             title={
               !supported
@@ -196,8 +213,9 @@ export function InterpreterPanel({
             }
             aria-label={listening ? "Stop voice input" : "Start voice input"}
             aria-pressed={listening}
+            style={{ minWidth: 48, minHeight: 48, touchAction: "manipulation" }}
             className={cn(
-              "h-11 w-11 shrink-0 rounded-full sm:h-9 sm:w-9",
+              "relative z-50 h-12 w-12 shrink-0 rounded-full sm:h-9 sm:w-9",
               listening
                 ? "mic-recording bg-brand-green text-white hover:bg-brand-green/90"
                 : "text-muted-foreground",
@@ -212,7 +230,8 @@ export function InterpreterPanel({
             onClick={() => send(value, false)}
             disabled={!value.trim()}
             aria-label="Send"
-            className="h-11 w-11 shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 sm:h-9 sm:w-9"
+            style={{ minWidth: 48, minHeight: 48, touchAction: "manipulation" }}
+            className="relative z-50 h-12 w-12 shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 sm:h-9 sm:w-9"
           >
             <SendHorizonal className="h-4 w-4" />
           </Button>

@@ -113,14 +113,14 @@ export function AppShell({ activeId, children }: Props) {
 
   if (!ready) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background text-muted-foreground">
+      <div className="flex h-[100dvh] w-full items-center justify-center bg-background text-muted-foreground">
         Loading…
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
+    <div className="flex h-[100dvh] w-full overflow-hidden bg-background text-foreground">
       <div className="hidden md:flex">
         <ThreadSidebar
           threads={threads}
