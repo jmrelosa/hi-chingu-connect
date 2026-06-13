@@ -10,6 +10,7 @@ export interface ChatMessage {
   createdAt: number;
   pending?: boolean;
   error?: boolean;
+  voice?: boolean;
 }
 
 export interface Thread {
