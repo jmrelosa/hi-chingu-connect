@@ -1,10 +1,12 @@
 export type Direction = "en-ko" | "ko-en";
+export type TranslationStyle = "formal" | "casual" | "polite";
 
 export interface ChatMessage {
   id: string;
   original: string;
   translation: string;
   direction: Direction;
+  style: TranslationStyle;
   createdAt: number;
   pending?: boolean;
   error?: boolean;
@@ -15,6 +17,7 @@ export interface Thread {
   title: string;
   updatedAt: number;
   direction: Direction;
+  style: TranslationStyle;
   messages: ChatMessage[];
 }
 
