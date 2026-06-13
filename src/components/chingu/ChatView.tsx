@@ -80,7 +80,11 @@ export function ChatView({ thread, updateThread }: Props) {
     }));
   };
 
-  const handleSubmit = async (override?: { text: string; voice?: boolean }) => {
+  const handleSubmit = async (override?: {
+    text: string;
+    voice?: boolean;
+    direction?: Direction;
+  }) => {
     const text = (override?.text ?? draft).trim();
     if (!text) return;
     const id = newMessageId();
