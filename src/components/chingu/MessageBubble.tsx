@@ -3,16 +3,24 @@ import { Loader2 } from "lucide-react";
 import type { ChatMessage } from "@/lib/threads-store";
 import { cn } from "@/lib/utils";
 
+import { styleBadge } from "./StyleSelector";
+
 export function MessageBubble({ message }: { message: ChatMessage }) {
   const fromLabel =
     message.direction === "en-ko" ? "English → Korean" : "Korean → English";
+  const badge = styleBadge(message.style ?? "polite");
 
   return (
     <div className="flex w-full justify-end">
       <div className="flex max-w-[78%] flex-col items-end gap-1">
-        <span className="px-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-          {fromLabel}
-        </span>
+        <div className="flex items-center gap-1.5 px-1">
+          <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+            {fromLabel}
+          </span>
+          <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-medium text-accent-foreground">
+            {badge}
+          </span>
+        </div>
         <div
           className={cn(
             "rounded-2xl rounded-br-sm bg-bubble-user px-4 py-3 text-bubble-user-foreground shadow-sm",

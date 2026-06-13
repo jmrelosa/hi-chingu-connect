@@ -3,18 +3,30 @@ import { useEffect, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import type { Direction } from "@/lib/threads-store";
+import type { Direction, TranslationStyle } from "@/lib/threads-store";
 import { cn } from "@/lib/utils";
+
+import { StyleSelector } from "./StyleSelector";
 
 interface Props {
   value: string;
   onChange: (v: string) => void;
   onSubmit: () => void;
   direction: Direction;
+  style: TranslationStyle;
+  onStyleChange: (style: TranslationStyle) => void;
   disabled?: boolean;
 }
 
-export function Composer({ value, onChange, onSubmit, direction, disabled }: Props) {
+export function Composer({
+  value,
+  onChange,
+  onSubmit,
+  direction,
+  style,
+  onStyleChange,
+  disabled,
+}: Props) {
   const ref = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
@@ -44,7 +56,10 @@ export function Composer({ value, onChange, onSubmit, direction, disabled }: Pro
   return (
     <div className="border-t border-border bg-background px-4 py-3 sm:px-6">
       <div className="mx-auto flex max-w-3xl flex-col gap-2">
-        <p className="px-1 text-xs text-muted-foreground">{hint}</p>
+        <div className="flex items-center justify-between px-1">
+          <p className="text-xs text-muted-foreground">{hint}</p>
+          <StyleSelector value={style} onChange={onStyleChange} />
+        </div>
         <div className="flex items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/20">
           <Textarea
             ref={ref}
