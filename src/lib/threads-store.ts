@@ -34,7 +34,15 @@ export function loadThreads(): Thread[] {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as Thread[];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    // Migrate old threads that lack `style`
+    for (const t of parsed) {
+      if (!t.style) t.style = "polite";
+      for (const m of t.messages) {
+        if (!m.style) m.style = "polite";
+      }
+    }
+    return parsed;
   } catch {
     return [];
   }
