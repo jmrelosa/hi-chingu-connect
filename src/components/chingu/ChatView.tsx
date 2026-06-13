@@ -40,8 +40,8 @@ export function ChatView({ thread, updateThread }: Props) {
     updateThread(thread.id, (t) => ({ ...t, style: s, updatedAt: Date.now() }));
   };
 
-  const handleSubmit = async () => {
-    const text = draft.trim();
+  const handleSubmit = async (override?: { text: string; voice?: boolean }) => {
+    const text = (override?.text ?? draft).trim();
     if (!text) return;
     const id = newMessageId();
     const direction = thread.direction;
@@ -53,6 +53,7 @@ export function ChatView({ thread, updateThread }: Props) {
       style,
       createdAt: Date.now(),
       pending: true,
+      voice: override?.voice,
     };
     updateThread(thread.id, (t) => ({
       ...t,
@@ -60,7 +61,7 @@ export function ChatView({ thread, updateThread }: Props) {
       updatedAt: Date.now(),
       messages: [...t.messages, msg],
     }));
-    setDraft("");
+    if (!override) setDraft("");
 
     try {
       const { translation } = await translate({ data: { text, direction, style } });
@@ -115,7 +116,8 @@ export function ChatView({ thread, updateThread }: Props) {
       <Composer
         value={draft}
         onChange={setDraft}
-        onSubmit={handleSubmit}
+        onSubmit={() => handleSubmit()}
+        onVoiceSubmit={(text) => handleSubmit({ text, voice: true })}
         direction={thread.direction}
         style={style}
         onStyleChange={setStyle}
