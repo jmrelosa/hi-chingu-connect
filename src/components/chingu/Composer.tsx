@@ -1,9 +1,10 @@
 import { Mic, SendHorizonal } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { Direction, TranslationStyle } from "@/lib/threads-store";
+import { useSpeechRecognition } from "@/lib/use-speech-recognition";
 import { cn } from "@/lib/utils";
 
 import { StyleSelector } from "./StyleSelector";
@@ -12,6 +13,7 @@ interface Props {
   value: string;
   onChange: (v: string) => void;
   onSubmit: () => void;
+  onVoiceSubmit?: (text: string) => void;
   direction: Direction;
   style: TranslationStyle;
   onStyleChange: (style: TranslationStyle) => void;
@@ -22,6 +24,7 @@ export function Composer({
   value,
   onChange,
   onSubmit,
+  onVoiceSubmit,
   direction,
   style,
   onStyleChange,
@@ -40,6 +43,28 @@ export function Composer({
       ? "Type in English — we'll translate to Korean."
       : "한국어로 입력하세요 — 영어로 번역됩니다.";
 
+  const lang = direction === "en-ko" ? "en-US" : "ko-KR";
+
+  const handleResult = useCallback(
+    (transcript: string) => {
+      onChange(transcript);
+      if (onVoiceSubmit) {
+        onVoiceSubmit(transcript);
+      } else {
+        onSubmit();
+      }
+    },
+    [onChange, onSubmit, onVoiceSubmit],
+  );
+
+  const { listening, start, stop, supported } = useSpeechRecognition({
+    lang,
+    onResult: handleResult,
+    onError: (e) => {
+      if (e && e !== "no-speech" && e !== "aborted") console.warn("Speech error:", e);
+    },
+  });
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -53,11 +78,23 @@ export function Composer({
     requestAnimationFrame(() => ref.current?.focus());
   };
 
+  const toggleMic = () => {
+    if (!supported) return;
+    if (listening) stop();
+    else start();
+  };
+
   return (
     <div className="border-t border-border bg-background px-4 py-3 sm:px-6">
       <div className="mx-auto flex max-w-3xl flex-col gap-2">
         <div className="flex items-center justify-between px-1">
-          <p className="text-xs text-muted-foreground">{hint}</p>
+          <p className="text-xs text-muted-foreground">
+            {listening ? (
+              <span className="font-medium text-brand-green">Listening…</span>
+            ) : (
+              hint
+            )}
+          </p>
           <StyleSelector value={style} onChange={onStyleChange} />
         </div>
         <div className="flex items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/20">
@@ -72,13 +109,25 @@ export function Composer({
           />
           <Button
             type="button"
-            variant="ghost"
+            variant={listening ? "default" : "ghost"}
             size="icon"
-            disabled
-            title="Voice input coming soon"
-            aria-label="Voice input (coming soon)"
+            onClick={toggleMic}
+            disabled={!supported || disabled}
+            title={
+              !supported
+                ? "Voice input requires Chrome or Edge"
+                : listening
+                  ? "Stop listening"
+                  : `Speak in ${direction === "en-ko" ? "English" : "Korean"}`
+            }
+            aria-label={listening ? "Stop voice input" : "Start voice input"}
+            aria-pressed={listening}
             className={cn(
-              "h-10 w-10 shrink-0 rounded-full text-muted-foreground",
+              "h-10 w-10 shrink-0 rounded-full",
+              listening
+                ? "mic-recording bg-brand-green text-white hover:bg-brand-green/90"
+                : "text-muted-foreground",
+              !supported && "cursor-not-allowed opacity-60",
             )}
           >
             <Mic className="h-4 w-4" />
