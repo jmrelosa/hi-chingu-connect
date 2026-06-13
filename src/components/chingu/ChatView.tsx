@@ -1,6 +1,8 @@
 import { useServerFn } from "@tanstack/react-start";
+import { ArrowLeftRight, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import {
   newMessageId,
   type ChatMessage,
@@ -9,10 +11,13 @@ import {
   type TranslationStyle,
 } from "@/lib/threads-store";
 import { translateText } from "@/lib/translate.functions";
+import { cn } from "@/lib/utils";
 
 import { Composer } from "./Composer";
 import { DirectionToggle } from "./DirectionToggle";
+import { InterpreterPanel } from "./InterpreterPanel";
 import { MessageBubble } from "./MessageBubble";
+import { StyleSelector } from "./StyleSelector";
 
 interface Props {
   thread: Thread;
@@ -25,6 +30,15 @@ export function ChatView({ thread, updateThread }: Props) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const style = thread.style ?? "polite";
+  const interpreterMode = !!thread.interpreterMode;
+  const swapped = !!thread.swapped;
+  const defaultLabelA = swapped ? "You (Korean)" : "You (English)";
+  const defaultLabelB = swapped ? "Them (English)" : "Them (Korean)";
+  const labelA = thread.labelA ?? defaultLabelA;
+  const labelB = thread.labelB ?? defaultLabelB;
+  // Panel A direction: english (en-ko) unless swapped
+  const directionA: Direction = swapped ? "ko-en" : "en-ko";
+  const directionB: Direction = swapped ? "en-ko" : "ko-en";
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -40,11 +54,41 @@ export function ChatView({ thread, updateThread }: Props) {
     updateThread(thread.id, (t) => ({ ...t, style: s, updatedAt: Date.now() }));
   };
 
-  const handleSubmit = async (override?: { text: string; voice?: boolean }) => {
+  const toggleInterpreter = () => {
+    updateThread(thread.id, (t) => ({
+      ...t,
+      interpreterMode: !t.interpreterMode,
+      updatedAt: Date.now(),
+    }));
+  };
+
+  const swapSpeakers = () => {
+    updateThread(thread.id, (t) => ({
+      ...t,
+      swapped: !t.swapped,
+      labelA: undefined,
+      labelB: undefined,
+      updatedAt: Date.now(),
+    }));
+  };
+
+  const setLabel = (which: "A" | "B", value: string) => {
+    updateThread(thread.id, (t) => ({
+      ...t,
+      ...(which === "A" ? { labelA: value } : { labelB: value }),
+      updatedAt: Date.now(),
+    }));
+  };
+
+  const handleSubmit = async (override?: {
+    text: string;
+    voice?: boolean;
+    direction?: Direction;
+  }) => {
     const text = (override?.text ?? draft).trim();
     if (!text) return;
     const id = newMessageId();
-    const direction = thread.direction;
+    const direction = override?.direction ?? thread.direction;
     const msg: ChatMessage = {
       id,
       original: text,
@@ -88,6 +132,13 @@ export function ChatView({ thread, updateThread }: Props) {
       ? "Translating English → Korean"
       : "Translating Korean → English";
 
+  const sendForPanel = (panelDirection: Direction) => (text: string, voice: boolean) => {
+    handleSubmit({ text, voice, direction: panelDirection });
+  };
+
+  const messagesA = thread.messages.filter((m) => m.direction === directionA);
+  const messagesB = thread.messages.filter((m) => m.direction === directionB);
+
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
       <header className="flex items-center justify-between gap-4 border-b border-white/10 bg-brand-navy px-4 py-3 text-brand-navy-foreground sm:px-6">
@@ -95,33 +146,100 @@ export function ChatView({ thread, updateThread }: Props) {
           <h1 className="truncate text-sm font-semibold sm:text-base">
             {thread.title || "New conversation"}
           </h1>
-          <span className="text-[11px] text-white/60">{directionLabel}</span>
+          <span className="text-[11px] text-white/60">
+            {interpreterMode ? "Interpreter Mode — two-way live" : directionLabel}
+          </span>
         </div>
-        <DirectionToggle direction={thread.direction} onChange={setDirection} />
+        <div className="flex items-center gap-2">
+          {interpreterMode ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={swapSpeakers}
+              className="gap-1.5 rounded-full border border-white/10 bg-white/5 text-white/90 hover:bg-white/10 hover:text-white"
+              title="Swap which panel speaks which language"
+            >
+              <ArrowLeftRight className="h-3.5 w-3.5" />
+              Swap
+            </Button>
+          ) : (
+            <DirectionToggle direction={thread.direction} onChange={setDirection} />
+          )}
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={toggleInterpreter}
+            aria-pressed={interpreterMode}
+            className={cn(
+              "gap-1.5 rounded-full border text-sm",
+              interpreterMode
+                ? "border-brand-green/40 bg-brand-green/20 text-white hover:bg-brand-green/30"
+                : "border-white/10 bg-white/5 text-white/90 hover:bg-white/10 hover:text-white",
+            )}
+            title="Toggle Interpreter Mode"
+          >
+            <Users className="h-3.5 w-3.5" />
+            Interpreter Mode 🔄
+          </Button>
+        </div>
       </header>
 
-      <div
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto bg-chat-bg px-4 py-6 sm:px-6"
-      >
-        <div className="mx-auto flex max-w-3xl flex-col gap-4">
-          {thread.messages.length === 0 ? (
-            <EmptyState direction={thread.direction} />
-          ) : (
-            thread.messages.map((m) => <MessageBubble key={m.id} message={m} />)
-          )}
-        </div>
-      </div>
+      {interpreterMode ? (
+        <>
+          <div className="flex items-center justify-between gap-3 border-b border-border bg-background/80 px-4 py-2 sm:px-6">
+            <p className="text-xs text-muted-foreground">
+              Each panel uses its own mic. Style applies to both.
+            </p>
+            <StyleSelector value={style} onChange={setStyle} />
+          </div>
+          <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+            <InterpreterPanel
+              direction={directionA}
+              label={labelA}
+              onLabelChange={(v) => setLabel("A", v)}
+              messages={messagesA}
+              onSubmit={sendForPanel(directionA)}
+              tint="blue"
+              className="lg:border-r"
+            />
+            <InterpreterPanel
+              direction={directionB}
+              label={labelB}
+              onLabelChange={(v) => setLabel("B", v)}
+              messages={messagesB}
+              onSubmit={sendForPanel(directionB)}
+              tint="green"
+            />
+          </div>
+        </>
+      ) : (
+        <>
+          <div
+            ref={scrollRef}
+            className="flex-1 overflow-y-auto bg-chat-bg px-4 py-6 sm:px-6"
+          >
+            <div className="mx-auto flex max-w-3xl flex-col gap-4">
+              {thread.messages.length === 0 ? (
+                <EmptyState direction={thread.direction} />
+              ) : (
+                thread.messages.map((m) => <MessageBubble key={m.id} message={m} />)
+              )}
+            </div>
+          </div>
 
-      <Composer
-        value={draft}
-        onChange={setDraft}
-        onSubmit={() => handleSubmit()}
-        onVoiceSubmit={(text) => handleSubmit({ text, voice: true })}
-        direction={thread.direction}
-        style={style}
-        onStyleChange={setStyle}
-      />
+          <Composer
+            value={draft}
+            onChange={setDraft}
+            onSubmit={() => handleSubmit()}
+            onVoiceSubmit={(text) => handleSubmit({ text, voice: true })}
+            direction={thread.direction}
+            style={style}
+            onStyleChange={setStyle}
+          />
+        </>
+      )}
     </div>
   );
 }

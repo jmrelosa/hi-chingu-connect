@@ -20,6 +20,11 @@ export interface Thread {
   direction: Direction;
   style: TranslationStyle;
   messages: ChatMessage[];
+  interpreterMode?: boolean;
+  /** When true, panel A speaks Korean and panel B speaks English. */
+  swapped?: boolean;
+  labelA?: string;
+  labelB?: string;
 }
 
 const KEY = "hi-chingu:threads:v1";
