@@ -93,14 +93,13 @@ export function Composer({
   };
 
   const handleFocus = () => {
-    // Auto-scroll page so input stays above the mobile keyboard
     requestAnimationFrame(() => {
-      ref.current?.scrollIntoView({ block: "end", behavior: "smooth" });
+      ref.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
     });
   };
 
   return (
-    <div className="pb-safe sticky bottom-0 border-t border-border bg-background px-3 pt-2 sm:px-6 sm:pt-3">
+    <div className="pb-safe z-40 shrink-0 border-t border-border bg-background px-3 pt-2 sm:px-6 sm:pt-3">
       <div className="mx-auto flex max-w-3xl flex-col gap-2">
         <div className="flex items-center justify-between px-1">
           <p className="text-xs text-muted-foreground">

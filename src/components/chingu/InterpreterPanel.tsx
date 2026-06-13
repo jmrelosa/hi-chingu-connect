@@ -104,7 +104,7 @@ export function InterpreterPanel({
   return (
     <section
       className={cn(
-        "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border h-[50vh] lg:h-auto",
+        "flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border",
         tintClasses,
         className,
       )}
@@ -167,7 +167,7 @@ export function InterpreterPanel({
 
       <div
         className={cn(
-          "sticky bottom-0 border-t bg-white/80 px-2 pt-2 pb-safe backdrop-blur sm:px-3",
+          "z-40 shrink-0 border-t bg-white/80 px-2 pt-2 pb-safe backdrop-blur sm:px-3",
           tint === "blue" ? "border-sky-200" : "border-emerald-200",
         )}
       >
@@ -181,7 +181,7 @@ export function InterpreterPanel({
             onChange={(e) => setValue(e.target.value)}
             onFocus={() =>
               requestAnimationFrame(() =>
-                taRef.current?.scrollIntoView({ block: "end", behavior: "smooth" }),
+                taRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }),
               )
             }
             onKeyDown={(e) => {
