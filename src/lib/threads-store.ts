@@ -45,12 +45,13 @@ export function saveThreads(threads: Thread[]) {
   window.localStorage.setItem(KEY, JSON.stringify(threads));
 }
 
-export function createThread(direction: Direction = "en-ko"): Thread {
+export function createThread(direction: Direction = "en-ko", style: TranslationStyle = "polite"): Thread {
   return {
     id: uid(),
     title: "New conversation",
     updatedAt: Date.now(),
     direction,
+    style,
     messages: [],
   };
 }
