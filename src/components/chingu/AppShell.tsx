@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import {
   bootstrapThreads,
   createThread,
-  loadThreads,
   saveThreads,
   type Thread,
 } from "@/lib/threads-store";
@@ -119,9 +118,6 @@ export function AppShell({ activeId, children }: Props) {
       </div>
     );
   }
-
-  // Suppress flash before redirect resolves
-  void loadThreads;
 
   return (
     <div className="flex h-screen w-full bg-background text-foreground">
