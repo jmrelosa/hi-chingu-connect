@@ -1,29 +1,35 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { AppShell } from "@/components/chingu/AppShell";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "Hi Chingu! — Real-time English ↔ Korean translator" },
+      {
+        name: "description",
+        content:
+          "Live two-way English and Korean chat translator. Type to see instant translations side by side.",
+      },
+      { property: "og:title", content: "Hi Chingu!" },
+      {
+        property: "og:description",
+        content: "Live two-way English ↔ Korean chat translator.",
+      },
     ],
   }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
+  // AppShell will bootstrap threads and navigate to the first one.
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <AppShell>
+      {() => (
+        <div className="flex h-full items-center justify-center text-muted-foreground">
+          Loading conversation…
+        </div>
+      )}
+    </AppShell>
   );
 }
