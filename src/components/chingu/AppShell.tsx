@@ -26,6 +26,46 @@ export function AppShell({ activeId, children }: Props) {
   const [threads, setThreads] = useState<Thread[]>([]);
   const [ready, setReady] = useState(false);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const root = document.documentElement;
+    let rafId = 0;
+
+    const updateViewportMetrics = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const vv = window.visualViewport;
+        const visualHeight = Math.round(vv?.height ?? window.innerHeight);
+        const viewportTop = Math.round(vv?.offsetTop ?? 0);
+        const viewportBottom = viewportTop + visualHeight;
+        const keyboardInset = Math.max(
+          0,
+          Math.round(window.innerHeight - visualHeight - viewportTop),
+        );
+
+        root.style.setProperty("--app-height", `${visualHeight}px`);
+        root.style.setProperty("--visual-viewport-height", `${visualHeight}px`);
+        root.style.setProperty("--visual-viewport-bottom", `${viewportBottom}px`);
+        root.style.setProperty("--keyboard-inset", `${keyboardInset}px`);
+      });
+    };
+
+    updateViewportMetrics();
+    window.visualViewport?.addEventListener("resize", updateViewportMetrics);
+    window.visualViewport?.addEventListener("scroll", updateViewportMetrics);
+    window.addEventListener("resize", updateViewportMetrics);
+    window.addEventListener("orientationchange", updateViewportMetrics);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.visualViewport?.removeEventListener("resize", updateViewportMetrics);
+      window.visualViewport?.removeEventListener("scroll", updateViewportMetrics);
+      window.removeEventListener("resize", updateViewportMetrics);
+      window.removeEventListener("orientationchange", updateViewportMetrics);
+    };
+  }, []);
+
   // Idempotent client-only bootstrap (avoid creating dupes in StrictMode).
   useEffect(() => {
     const { threads: t } = bootstrapThreads();
@@ -113,14 +153,14 @@ export function AppShell({ activeId, children }: Props) {
 
   if (!ready) {
     return (
-      <div className="flex h-[100dvh] w-full items-center justify-center bg-background text-muted-foreground">
+      <div className="flex w-full items-center justify-center bg-background text-muted-foreground" style={{ height: "var(--app-height, 100dvh)" }}>
         Loading…
       </div>
     );
   }
 
   return (
-    <div className="flex h-[100dvh] w-full overflow-hidden bg-background text-foreground">
+    <div className="flex w-full overflow-hidden bg-background text-foreground" style={{ height: "var(--app-height, 100dvh)" }}>
       <div className="hidden md:flex">
         <ThreadSidebar
           threads={threads}
