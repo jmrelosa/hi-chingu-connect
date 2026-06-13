@@ -1,8 +1,20 @@
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeftRight, Users } from "lucide-react";
+import { ArrowLeftRight, Download, Trash2, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   newMessageId,
   type ChatMessage,
@@ -43,7 +55,7 @@ export function ChatView({ thread, updateThread }: Props) {
   // Auto-scroll on new messages
   useEffect(() => {
     const el = scrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [thread.id, thread.messages.length]);
 
   const setDirection = (d: Direction) => {
@@ -118,6 +130,7 @@ export function ChatView({ thread, updateThread }: Props) {
       }));
     } catch (err) {
       console.error(err);
+      toast.error("Translation failed. Please try again.");
       updateThread(thread.id, (t) => ({
         ...t,
         messages: t.messages.map((m) =>
