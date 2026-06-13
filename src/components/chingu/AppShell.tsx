@@ -177,7 +177,7 @@ export function AppShell({ activeId, children }: Props) {
   }
 
   return (
-    <div className="flex w-full overflow-x-hidden bg-background text-foreground" style={{ height: "var(--app-height, 100dvh)" }}>
+    <div className="flex w-full bg-background text-foreground" style={{ height: "var(--app-height, 100dvh)" }}>
       <div className="hidden md:flex">
         <ThreadSidebar
           threads={threads}
