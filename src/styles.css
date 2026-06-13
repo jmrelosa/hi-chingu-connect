@@ -192,3 +192,19 @@
 @utility mic-recording {
   animation: mic-pulse 1.4s ease-out infinite;
 }
+
+@utility pb-safe {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+@layer base {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+  button,
+  a,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+}

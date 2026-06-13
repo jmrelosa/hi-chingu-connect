@@ -120,13 +120,15 @@ export function AppShell({ activeId, children }: Props) {
   }
 
   return (
-    <div className="flex h-screen w-full bg-background text-foreground">
-      <ThreadSidebar
-        threads={threads}
-        activeId={activeId ?? ""}
-        onNew={handleNew}
-        onDelete={handleDelete}
-      />
+    <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
+      <div className="hidden md:flex">
+        <ThreadSidebar
+          threads={threads}
+          activeId={activeId ?? ""}
+          onNew={handleNew}
+          onDelete={handleDelete}
+        />
+      </div>
       <div className="flex min-w-0 flex-1 flex-col">
         {children({ threads, activeThread, updateThread })}
       </div>
