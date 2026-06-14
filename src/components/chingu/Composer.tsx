@@ -38,6 +38,7 @@ export function Composer({
     ref.current?.focus();
   }, []);
 
+  // Measure the composer height so ChatView can use it for paddingBottom
   useEffect(() => {
     const el = containerRef.current;
     if (!el || typeof ResizeObserver === "undefined") return;
@@ -52,7 +53,6 @@ export function Composer({
     updateHeight();
     const observer = new ResizeObserver(updateHeight);
     observer.observe(el);
-
     return () => observer.disconnect();
   }, []);
 
@@ -65,23 +65,39 @@ export function Composer({
 
   const lang = direction === "en-ko" ? "en-US" : "ko-KR";
 
-  const handleResult = useCallback(
-    (transcript: string) => {
-      onChange(transcript);
-      if (onVoiceSubmit) {
-        onVoiceSubmit(transcript);
-      } else {
-        onSubmit();
-      }
-    },
-    [onChange, onSubmit, onVoiceSubmit],
-  );
+  // Keep parent callbacks in refs so handleResult (and therefore `start`) stays stable.
+  // Without this, every keystroke re-renders the parent, producing new onChange/onSubmit
+  // references, which recreates handleResult, which invalidates `start`, which causes
+  // the mic to silently fail on Android Chrome.
+  const onSubmitRef = useRef(onSubmit);
+  const onVoiceSubmitRef = useRef(onVoiceSubmit);
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onSubmitRef.current = onSubmit;
+  }, [onSubmit]);
+  useEffect(() => {
+    onVoiceSubmitRef.current = onVoiceSubmit;
+  }, [onVoiceSubmit]);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  // Stable — never recreated, reads latest callbacks via refs
+  const handleResult = useCallback((transcript: string) => {
+    onChangeRef.current(transcript);
+    if (onVoiceSubmitRef.current) {
+      onVoiceSubmitRef.current(transcript);
+    } else {
+      onSubmitRef.current();
+    }
+  }, []);
 
   const { listening, start, stop, supported } = useSpeechRecognition({
     lang,
     onResult: handleResult,
     onError: (e) => {
-      if (e && e !== "no-speech" && e !== "aborted") console.warn("Speech error:", e);
+      if (e && e !== "no-speech" && e !== "aborted")
+        console.warn("Speech error:", e);
     },
   });
 
@@ -98,16 +114,47 @@ export function Composer({
     requestAnimationFrame(() => ref.current?.focus());
   };
 
-  const toggleMic = () => {
-    if (!supported) return;
-    if (listening) stop();
-    else {
+  // Android Chrome requires getUserMedia() to be called first (triggered by a user
+  // gesture) before SpeechRecognition.start() is allowed. Skipping this causes the
+  // mic to silently fail with a `not-allowed` error on most Android devices.
+  const doStart = () => {
+    if (navigator.mediaDevices?.getUserMedia) {
+      navigator.mediaDevices
+        .getUserMedia({ audio: true })
+        .then(() => {
+          try {
+            start();
+          } catch (e) {
+            console.warn(e);
+            toast.error(
+              "Please allow microphone access in your browser settings",
+            );
+          }
+        })
+        .catch(() => {
+          toast.error(
+            "Please allow microphone access in your browser settings",
+          );
+        });
+    } else {
       try {
         start();
       } catch (e) {
         console.warn(e);
         toast.error("Please allow microphone access in your browser settings");
       }
+    }
+  };
+
+  const toggleMic = () => {
+    if (!supported) {
+      toast.error("Voice input requires Chrome or Edge");
+      return;
+    }
+    if (listening) {
+      stop();
+    } else {
+      doStart();
     }
   };
 
