@@ -1,4 +1,3 @@
-```ts
 import { useCallback, useEffect, useRef, useState } from "react";
 
 function getSRCtor(): any | null {
@@ -127,4 +126,3 @@ export function useSpeechRecognition({
 
   return { listening, start, stop, supported };
 }
-```
