@@ -61,7 +61,8 @@ export function useSpeechRecognition({
 
     const rec = new Ctor();
 
-    rec.lang = lang;
+    rec.lang = "en-US";
+alert("Speech Language: " + rec.lang);
     rec.interimResults = false;
     rec.maxAlternatives = 1;
     rec.continuous = false;
