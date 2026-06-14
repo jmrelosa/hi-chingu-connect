@@ -1,3 +1,4 @@
+```ts
 import { useCallback, useEffect, useRef, useState } from "react";
 
 function getSRCtor(): any | null {
@@ -28,7 +29,6 @@ export function useSpeechRecognition({
   const recRef = useRef<any>(null);
   const supported = isSpeechRecognitionSupported();
 
-  // Store callbacks in refs so `start` never captures stale closures.
   const onResultRef = useRef(onResult);
   const onErrorRef = useRef(onError);
 
@@ -61,11 +61,12 @@ export function useSpeechRecognition({
 
     const rec = new Ctor();
 
-    rec.lang = "en-US";
-alert("Speech Language: " + rec.lang);
-    rec.interimResults = false;
+    rec.lang = lang;
+
+    // Updated settings
+    rec.interimResults = true;
+    rec.continuous = true;
     rec.maxAlternatives = 1;
-    rec.continuous = false;
 
     rec.onstart = () => {
       console.log("SR START");
@@ -92,10 +93,13 @@ alert("Speech Language: " + rec.lang);
     rec.onresult = (e: any) => {
       console.log("SR RESULT:", e);
 
-      const transcript = Array.from(e.results as any[])
-        .map((r: any) => r[0]?.transcript ?? "")
-        .join(" ")
-        .trim();
+      let transcript = "";
+
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        transcript += e.results[i][0]?.transcript ?? "";
+      }
+
+      transcript = transcript.trim();
 
       console.log("TRANSCRIPT:", transcript);
 
@@ -123,3 +127,4 @@ alert("Speech Language: " + rec.lang);
 
   return { listening, start, stop, supported };
 }
+```
